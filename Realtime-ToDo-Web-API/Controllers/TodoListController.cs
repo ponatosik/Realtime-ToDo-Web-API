@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Realtime_ToDo_Web_API.Models;
+using Realtime_ToDo_Web_API.Data;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Realtime_ToDo_Web_API.Controllers;
 
@@ -7,17 +10,24 @@ namespace Realtime_ToDo_Web_API.Controllers;
 [Route("[controller]")]
 public class TodoListController : ControllerBase
 {
-    public TodoListController()
+    private readonly TodoListContext _todoListContext;
+    public TodoListController(TodoListContext todoListContext)
     {
-
+        _todoListContext = todoListContext;
     }
 
     [HttpGet(Name = "GetTodoList")]
     public IEnumerable<TodoTask> Get()
     {
-        return new List<TodoTask> {
-            new TodoTask{Title = "Create new repo", Completed = true, Id = 0, Order = 0},
-            new TodoTask{Title = "Add basic controller", Completed = true, Id = 1, Order = 1},
-            new TodoTask{Title = "Set up database", Completed = false, Id = 2, Order = 2}};
+        return _todoListContext.Tasks.OrderBy(task => task.Order);
+    }
+
+    [HttpPut(Name = "PutTodoList")]
+    public async Task<TodoTask> PutAsync(TodoTask task)
+    {
+        task.Id = default;
+        await _todoListContext.Tasks.AddAsync(task);
+        await _todoListContext.SaveChangesAsync();
+        return task;
     }
 }
