@@ -7,10 +7,12 @@ namespace Realtime_ToDo_Web_API.Hubs;
 
 public class TodoListHub : Hub
 {
+    public readonly IUserConnectionStorage _connectedUsers;
     private readonly TodoListContext _todoListContext;
-    public TodoListHub(TodoListContext todoListContext)
+    public TodoListHub(TodoListContext todoListContext, IUserConnectionStorage connectedUsers)
     {
         _todoListContext = todoListContext;
+        _connectedUsers = connectedUsers;
     }
 
     public async Task AddTask(TodoTask task)
@@ -129,5 +131,19 @@ public class TodoListHub : Hub
         targetTask.Order += orderDistance;
         await _todoListContext.SaveChangesAsync();
         await Clients.All.SendAsync(nameof(MoveTask), taskId, orderDistance);
+    }
+
+    public override Task OnConnectedAsync()
+    {
+        _connectedUsers.Add(Context.ConnectionId);
+        Clients.All.SendAsync("UserConnected", _connectedUsers.Count);
+        return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        _connectedUsers.Remove(Context.ConnectionId);
+        Clients.All.SendAsync("UserDisconnected", _connectedUsers.Count);
+        return base.OnDisconnectedAsync(exception);
     }
 }

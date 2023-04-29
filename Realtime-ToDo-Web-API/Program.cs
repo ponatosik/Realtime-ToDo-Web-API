@@ -14,7 +14,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TodoListContext>(options =>
     options.UseInMemoryDatabase("TodoListInMemoryDatabase")
 );
-    
+
+// Add custom services and singletons for dependency injection
+builder.Services.AddSingleton<IUserConnectionStorage>(new UserConnectionStorage());
 
 var app = builder.Build();
 
