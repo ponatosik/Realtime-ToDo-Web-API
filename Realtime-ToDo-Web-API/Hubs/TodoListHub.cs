@@ -16,6 +16,7 @@ public class TodoListHub : Hub
     public async Task AddTask(TodoTask task)
     {
         task.Id = default;
+        task.Order = _todoListContext.Tasks.Count() + 1;
         await _todoListContext.Tasks.AddAsync(task);
         await _todoListContext.SaveChangesAsync();
         await Clients.All.SendAsync(nameof(AddTask), task);
@@ -47,6 +48,10 @@ public class TodoListHub : Hub
             await Clients.Caller.SendAsync("Error", $"Task with id {taskId} does not exist");
             return;
         }
+
+        await _todoListContext.Tasks.Where((task) => task.Order > targetTask.Order).ForEachAsync(task =>
+            task.Order--
+        );
 
         _todoListContext.Tasks.Remove(targetTask);
         await _todoListContext.SaveChangesAsync();
@@ -103,6 +108,23 @@ public class TodoListHub : Hub
             await Clients.Caller.SendAsync("Error", $"Task with id {taskId} does not exist");
             return;
         }
+
+        int numberOfRecors = _todoListContext.Tasks.Count();
+        int order = targetTask.Order;
+        orderDistance = Math.Clamp(orderDistance, 1 - order, numberOfRecors - order);
+        int moveDirection = Math.Sign(orderDistance);
+
+        if (orderDistance == 0)
+        {
+            await Clients.Caller.SendAsync("Error", $"Cannot move task with id {taskId}");
+            return;
+        }
+
+        int lowerBoundOrder = Math.Min(order + orderDistance, order + moveDirection);
+        int upperBoundOrder = Math.Max(order + orderDistance, order + moveDirection);
+        await _todoListContext.Tasks.Where((task) => task.Order <= upperBoundOrder && task.Order >= lowerBoundOrder).ForEachAsync(task =>
+            task.Order -= moveDirection
+        );
 
         targetTask.Order += orderDistance;
         await _todoListContext.SaveChangesAsync();

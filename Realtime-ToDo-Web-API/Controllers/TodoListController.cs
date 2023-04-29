@@ -26,6 +26,7 @@ public class TodoListController : ControllerBase
     public async Task<TodoTask> PutAsync(TodoTask task)
     {
         task.Id = default;
+        task.Order = _todoListContext.Tasks.Count() + 1;
         await _todoListContext.Tasks.AddAsync(task);
         await _todoListContext.SaveChangesAsync();
         return task;
