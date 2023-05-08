@@ -15,10 +15,14 @@ public class TodoListHub : Hub
         _connectedUsers = connectedUsers;
     }
 
-    public async Task AddTask(TodoTask task)
+    public async Task AddTask(string title, DateTime? deadline)
     {
-        task.Id = default;
-        task.Order = _todoListContext.Tasks.Count() + 1;
+        TodoTask task = new TodoTask 
+        {
+            Title = title,
+            Deadline = deadline,
+            Order = _todoListContext.Tasks.Count()
+        }; 
         await _todoListContext.Tasks.AddAsync(task);
         await _todoListContext.SaveChangesAsync();
         await Clients.All.SendAsync(nameof(AddTask), task);
@@ -102,7 +106,7 @@ public class TodoListHub : Hub
         await Clients.All.SendAsync(nameof(UpdateTaskDeadline), taskId, newDeadline);
     }
 
-    public async Task MoveTask(int taskId, int orderDistance)
+    public async Task MoveTask(int taskId, int destinationOrder)
     {
         TodoTask? targetTask = _todoListContext.Tasks.FirstOrDefault(task => task.Id == taskId);
         if (targetTask == null)
@@ -111,26 +115,25 @@ public class TodoListHub : Hub
             return;
         }
 
-        int numberOfRecors = _todoListContext.Tasks.Count();
         int order = targetTask.Order;
-        orderDistance = Math.Clamp(orderDistance, 1 - order, numberOfRecors - order);
-        int moveDirection = Math.Sign(orderDistance);
+        destinationOrder = Math.Clamp(destinationOrder, 0, _todoListContext.Tasks.Count() - 1);
 
-        if (orderDistance == 0)
+        if (order == destinationOrder)
         {
             await Clients.Caller.SendAsync("Error", $"Cannot move task with id {taskId}");
             return;
         }
 
-        int lowerBoundOrder = Math.Min(order + orderDistance, order + moveDirection);
-        int upperBoundOrder = Math.Max(order + orderDistance, order + moveDirection);
-        await _todoListContext.Tasks.Where((task) => task.Order <= upperBoundOrder && task.Order >= lowerBoundOrder).ForEachAsync(task =>
-            task.Order -= moveDirection
-        );
+        int lowerBoundOrder = order < destinationOrder ? order : destinationOrder;
+        int upperBoundOrder = order > destinationOrder ? order : destinationOrder;
+        int shiftDirection = Math.Sign(destinationOrder - order);
 
-        targetTask.Order += orderDistance;
+        await _todoListContext.Tasks.Where((task) => task.Order <= upperBoundOrder && task.Order >= lowerBoundOrder).ForEachAsync(task =>
+            task.Order -= shiftDirection
+        );
+        targetTask.Order = destinationOrder;
         await _todoListContext.SaveChangesAsync();
-        await Clients.All.SendAsync(nameof(MoveTask), taskId, orderDistance);
+        await Clients.All.SendAsync(nameof(MoveTask), taskId, destinationOrder);
     }
 
     public override Task OnConnectedAsync()
