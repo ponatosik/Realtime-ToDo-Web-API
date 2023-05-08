@@ -10,5 +10,5 @@ public class TodoListContext : DbContext
 
     }
 
-    public DbSet<TodoTask> Tasks { get; set; }
+    public DbSet<Workspace> Workspaces { get; set; }
 }

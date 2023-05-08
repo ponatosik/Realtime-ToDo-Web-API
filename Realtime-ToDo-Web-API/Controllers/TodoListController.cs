@@ -3,6 +3,7 @@ using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Realtime_ToDo_Web_API.Controllers;
 
@@ -16,18 +17,27 @@ public class TodoListController : ControllerBase
         _todoListContext = todoListContext;
     }
 
-    [HttpGet(Name = "GetTodoList")]
-    public IEnumerable<TodoTask> Get()
+    [HttpGet("{worspaceId}", Name = "GetTodoListByWorspaceId")]
+    public IEnumerable<TodoTask>? Get(int worspaceId)
     {
-        return _todoListContext.Tasks.OrderBy(task => task.Order);
+        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == worspaceId);
+        if (workspace == null) 
+            return null;
+
+        return workspace.Tasks.OrderBy(task => task.Order);
     }
 
-    [HttpPut(Name = "PutTodoList")]
-    public async Task<TodoTask> PutAsync(TodoTask task)
+    [HttpPut("{worspaceId}", Name = "PutTodoListByWorspaceId")]
+    public async Task<TodoTask>? PutAsync(TodoTask task, int worspaceId)
     {
+        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == worspaceId);
+        if (workspace == null)
+            return null;
+
         task.Id = default;
-        task.Order = _todoListContext.Tasks.Count();
-        await _todoListContext.Tasks.AddAsync(task);
+        task.Order = workspace.Tasks.Count();
+
+        workspace.Tasks.Add(task);
         await _todoListContext.SaveChangesAsync();
         return task;
     }
