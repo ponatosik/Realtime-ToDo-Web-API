@@ -1,169 +1,146 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Models;
-using System.Threading.Tasks;
+using Realtime_ToDo_Web_API.Services;
 
 namespace Realtime_ToDo_Web_API.Hubs;
 
 public class TodoListHub : Hub<ITodoListClient>
 {
-    public readonly IUserConnectionStorage _connectedUsers;
-    private readonly TodoListContext _todoListContext;
-    public TodoListHub(TodoListContext todoListContext, IUserConnectionStorage connectedUsers)
+    private readonly IUserConnectionStorage _connectedUsers;
+    private readonly TodoListService _todoListService;
+    public TodoListHub(TodoListService todoListService, IUserConnectionStorage connectedUsers)
     {
-        _todoListContext = todoListContext;
+        _todoListService = todoListService;
         _connectedUsers = connectedUsers;
-    }
-
-    public async Task<TodoTask?> GetTask(int taskId)
-    {
-        Workspace? workspace = await GetConnectedWorkspace();
-        if (workspace == null)
-        {
-            return null;
-        }
-
-        TodoTask? task = workspace.Tasks.FirstOrDefault(task => task.Id == taskId);
-        if (task == null)
-        {
-            await Clients.Caller.Error($"Task with id {taskId} does not exist");
-            return null;
-        }
-
-        return task;
     }
 
     public async Task AddTask(string title, DateTime? deadline)
     {
-        Workspace? workspace = await GetConnectedWorkspace();
-        if (workspace == null)
-            return;
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
 
         TodoTask task = new TodoTask
         {
             Title = title,
-            Deadline = deadline,
-            Order = workspace.Tasks.Count()
+            Deadline = deadline
         };
 
-        workspace.Tasks.Add(task);
-        await _todoListContext.SaveChangesAsync();
+        await _todoListService.AddTask(workspaceId.Value, task);
         await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).AddTask(task);
     }
 
     public async Task UpdateTask(int taskId, TodoTask newTask)
     {
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
+
+        TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId.Value, taskId, (targetTask) => {
+            targetTask.Title = newTask.Title;
+            targetTask.Completed = newTask.Completed;
+            targetTask.Deadline = newTask.Deadline;
+            targetTask.Order = newTask.Order;
+        });
+
+        if (updatedTask == null) 
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
             return;
+        }
 
-        targetTask.Title = newTask.Title;
-        targetTask.Completed = newTask.Completed;
-        targetTask.Deadline = newTask.Deadline;
-
-        if (targetTask.Order != newTask.Order)
-            await UpdateTaskOrder(taskId, newTask.Order);
-
-        await _todoListContext.SaveChangesAsync();
-        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTask(targetTask);
+        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTask(updatedTask);
     }
 
     public async Task DeleteTask(int taskId)
     {
-        Workspace? workspace = await GetConnectedWorkspace();
-        if (workspace == null)
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
+
+        TodoTask? deletedTask = await _todoListService.DeleteTask(workspaceId.Value, taskId);
+        if (deletedTask == null)
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
             return;
+        }
 
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
-            return;
-
-        foreach (TodoTask task in workspace.Tasks.Where((task) => task.Order > targetTask.Order))
-            task.Order--;
-
-        workspace.Tasks.Remove(targetTask);
-        await _todoListContext.SaveChangesAsync();
         await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).DeleteTask(taskId);
     }
 
     public async Task UpdateTaskTitle(int taskId, string newTitle)
     {
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
-            return;
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
 
-        targetTask.Title = newTitle;
-        await _todoListContext.SaveChangesAsync();
-        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskTitle(taskId, newTitle);
+        TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId.Value, taskId, (targetTask) => {
+            targetTask.Title = newTitle;
+        });
+        if (updatedTask == null)
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
+            return;
+        }
+
+        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskTitle(taskId, updatedTask.Title);
     }
 
     public async Task UpdateTaskCompleted(int taskId, bool newCompleted)
     {
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
-            return;
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
 
-        targetTask.Completed = newCompleted;
-        await _todoListContext.SaveChangesAsync();
-        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskCompleted(taskId, newCompleted);
+        TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId.Value, taskId, (targetTask) => {
+            targetTask.Completed = newCompleted;
+        });
+        if (updatedTask == null)
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
+            return;
+        }
+
+        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskCompleted(taskId, updatedTask.Completed);
     }
 
     public async Task UpdateTaskDeadline(int taskId, DateTime newDeadline)
     {
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
-            return;
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
 
-        targetTask.Deadline = newDeadline;
-        await _todoListContext.SaveChangesAsync();
-        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskDeadline(taskId, newDeadline);
+        TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId.Value, taskId, (targetTask) => {
+            targetTask.Deadline = newDeadline;
+        });
+        if (updatedTask == null)
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
+            return;
+        }
+
+        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskDeadline(taskId, updatedTask.Deadline);
     }
 
     public async Task UpdateTaskOrder(int taskId, int destinationOrder)
     {
-        Workspace? workspace = await GetConnectedWorkspace();
-        if (workspace == null)
+        int? workspaceId = await GetConnectedWorkspace();
+        if (workspaceId == null) return;
+
+        TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId.Value, taskId, (targetTask) => {
+            targetTask.Order = destinationOrder;
+        });
+        if (updatedTask == null)
+        {
+            await Clients.Caller.Error($"Task with id {taskId} does not exist");
             return;
+        }
 
-        TodoTask? targetTask = await GetTask(taskId);
-        if (targetTask == null)
-            return;
-
-        int order = targetTask.Order;
-        destinationOrder = Math.Clamp(destinationOrder, 0, workspace.Tasks.Count() - 1);
-
-        if (order == destinationOrder)
-            return;
-
-        int lowerBoundOrder = order < destinationOrder ? order : destinationOrder;
-        int upperBoundOrder = order > destinationOrder ? order : destinationOrder;
-        int shiftDirection = Math.Sign(destinationOrder - order);
-
-        foreach (TodoTask task in workspace.Tasks.Where((task) => task.Order > targetTask.Order))
-            task.Order -= shiftDirection;
-
-        targetTask.Order = destinationOrder;
-        await _todoListContext.SaveChangesAsync();
-        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskOrder(taskId, destinationOrder);
+        await Clients.Group(_connectedUsers.GetGroupName(Context.ConnectionId)).UpdateTaskOrder(taskId, updatedTask.Order);
     }
 
-    public async Task<Workspace?> GetConnectedWorkspace()
+    public async Task<int?> GetConnectedWorkspace()
     {
         if (!_connectedUsers.Keys.Contains(Context.ConnectionId))
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return null;
         }
-
-        int? connectedWorkspaceId = _connectedUsers.GetGroupId(Context.ConnectionId);
-        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == connectedWorkspaceId);
-        if (workspace == null)
-        {
-            await Clients.Caller.Error($"Workspace with id {connectedWorkspaceId} does not exist");
-            return null;
-        }
-        return workspace;
+        return _connectedUsers.GetGroupId(Context.ConnectionId);
     }
 
     public async Task ConnectToWorkspace(int workspaceId)
@@ -171,7 +148,7 @@ public class TodoListHub : Hub<ITodoListClient>
         if (_connectedUsers.Keys.Contains(Context.ConnectionId))
             await DisconnectFromWorkspaces();
 
-        Workspace? targetWorkspace = _todoListContext.Workspaces.FirstOrDefault(workspace => workspace.Id == workspaceId);
+        Workspace? targetWorkspace = _todoListService.GetWorkspaceInfo(workspaceId);
         if (targetWorkspace == null)
         {
             await Clients.Caller.Error($"Workspace with id {workspaceId} does not exist");
@@ -228,5 +205,4 @@ public class TodoListHub : Hub<ITodoListClient>
         Clients.Group(workspaceGroupName).UserConnected(_connectedUsers.Count);
         return base.OnDisconnectedAsync(exception);
     }
-
 }

@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Realtime_ToDo_Web_API.Models;
-using Realtime_ToDo_Web_API.Data;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+using Realtime_ToDo_Web_API.Services;
 
 namespace Realtime_ToDo_Web_API.Controllers;
 
@@ -11,34 +8,21 @@ namespace Realtime_ToDo_Web_API.Controllers;
 [Route("[controller]")]
 public class TodoListController : ControllerBase
 {
-    private readonly TodoListContext _todoListContext;
-    public TodoListController(TodoListContext todoListContext)
+    private readonly TodoListService _todoListService;
+    public TodoListController(TodoListService todoListService)
     {
-        _todoListContext = todoListContext;
+        _todoListService = todoListService;
     }
 
-    [HttpGet("{worspaceId}", Name = "GetTodoListByWorspaceId")]
-    public IEnumerable<TodoTask>? Get(int worspaceId)
+    [HttpGet("{workspaceId}", Name = "GetTodoListworkspaceId")]
+    public IEnumerable<TodoTask>? Get(int workspaceId)
     {
-        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == worspaceId);
-        if (workspace == null) 
-            return null;
-
-        return workspace.Tasks.OrderBy(task => task.Order);
+        return _todoListService.GetWorkspaceTasks(workspaceId)?.OrderBy(task => task.Id);
     }
 
-    [HttpPut("{worspaceId}", Name = "PutTodoListByWorspaceId")]
-    public async Task<TodoTask>? PutAsync(TodoTask task, int worspaceId)
+    [HttpPut("{workspaceId}", Name = "PutTodoListByworkspaceId")]
+    public async Task<TodoTask> PutAsync(TodoTask task, int workspaceId)
     {
-        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == worspaceId);
-        if (workspace == null)
-            return null;
-
-        task.Id = default;
-        task.Order = workspace.Tasks.Count();
-
-        workspace.Tasks.Add(task);
-        await _todoListContext.SaveChangesAsync();
-        return task;
+        return await _todoListService.AddTask(workspaceId, task);
     }
 }

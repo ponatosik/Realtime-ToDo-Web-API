@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Models;
+using Realtime_ToDo_Web_API.Services;
 
 namespace Realtime_ToDo_Web_API.Controllers;
 
@@ -8,28 +9,21 @@ namespace Realtime_ToDo_Web_API.Controllers;
 [Route("[controller]")]
 public class WorkspacesController : ControllerBase
 {
-    private readonly TodoListContext _todoListContext;
-    public WorkspacesController(TodoListContext todoListContext)
+    private readonly TodoListService _todoListService;
+    public WorkspacesController(TodoListService todoListService)
     {
-        _todoListContext = todoListContext;
+        _todoListService = todoListService;
     }
 
     [HttpGet(Name = "GetWorkspaces")]
     public IEnumerable<Workspace> Get()
     {
-        return _todoListContext.Workspaces;
+        return _todoListService.GetWorkspaces();
     }
 
     [HttpPut(Name = "PutWorkspaces")]
-    public async Task<Workspace> PutAsync(string worspaceName)
+    public async Task<Workspace> PutAsync(string worskspaceName)
     {
-        Workspace workspace = new()
-        {
-            Name = worspaceName,
-            Tasks = new List<TodoTask>()
-        };
-        await _todoListContext.Workspaces.AddAsync(workspace);
-        await _todoListContext.SaveChangesAsync();
-        return workspace;
+        return _todoListService.AddWorkspace(worskspaceName).Result;
     }
 }
