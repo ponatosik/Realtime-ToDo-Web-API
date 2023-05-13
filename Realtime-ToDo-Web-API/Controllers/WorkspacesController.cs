@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
 
@@ -24,6 +23,6 @@ public class WorkspacesController : ControllerBase
     [HttpPut(Name = "PutWorkspaces")]
     public async Task<Workspace> PutAsync(string worskspaceName)
     {
-        return _todoListService.AddWorkspace(worskspaceName).Result;
+        return await _todoListService.AddWorkspace(worskspaceName);
     }
 }

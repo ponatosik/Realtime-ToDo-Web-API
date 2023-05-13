@@ -187,7 +187,7 @@ public class TodoListHub : Hub<ITodoListClient>
         var httpContext = Context.GetHttpContext();
         if (httpContext != null && httpContext.Request.Query.Keys.Contains("workspaceid"))
         {
-            string workspaceIdString = httpContext.Request.Query["workspaceid"];
+            string workspaceIdString = httpContext.Request.Query["workspaceid"]!;
             if (int.TryParse(workspaceIdString, out int workspaceId))
             {
                 await ConnectToWorkspace(workspaceId);

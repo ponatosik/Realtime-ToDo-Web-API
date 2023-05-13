@@ -21,7 +21,7 @@ public class TodoListController : ControllerBase
     }
 
     [HttpPut("{workspaceId}", Name = "PutTodoListByworkspaceId")]
-    public async Task<TodoTask> PutAsync(TodoTask task, int workspaceId)
+    public async Task<TodoTask?> PutAsync(TodoTask task, int workspaceId)
     {
         return await _todoListService.AddTask(workspaceId, task);
     }

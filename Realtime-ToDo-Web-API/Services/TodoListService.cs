@@ -48,14 +48,14 @@ public class TodoListService
                 ?.FirstOrDefault(task => task.Id == taskId);
     }
 
-    public async Task<TodoTask> AddTask(int workspaceId, TodoTask task) 
+    public async Task<TodoTask?> AddTask(int workspaceId, TodoTask task) 
     {
         Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId);
         if (workspace == null)
             return null;
 
         task.Id = default;
-        task.Order = workspace.Tasks.Count();
+        task.Order = workspace.Tasks!.Count;
 
         workspace.Tasks.Add(task);
         await _todoListContext.SaveChangesAsync();
@@ -76,6 +76,8 @@ public class TodoListService
         if (targetTask.Order != order) 
         {
             var workspaceTasks = GetWorkspaceTasks(workspaceId);
+            if (workspaceTasks == null) return null;
+
 
             targetTask.Order = Math.Clamp(targetTask.Order, 0, workspaceTasks.Count() - 1);
             int lowerBoundOrder = order < targetTask.Order ? order : targetTask.Order;
@@ -96,7 +98,7 @@ public class TodoListService
         if (workspaceTasks == null) return null;
 
         TodoTask? targetTask = workspaceTasks.FirstOrDefault(task => task.Id == taskId);
-        if (workspaceTasks == null) return null;
+        if (targetTask == null) return null;
 
         foreach (TodoTask task in workspaceTasks.Where((task) => task.Order > targetTask.Order))
             task.Order--;
