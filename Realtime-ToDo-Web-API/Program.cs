@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Hubs;
 using Realtime_ToDo_Web_API.Services;
+using Realtime_ToDo_Web_API.Services.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.AddDbContext<TodoListContext>(options =>
 );
 
 // Add custom services and singletons for dependency injection
-builder.Services.AddSingleton<IUserConnectionStorage>(new UserConnectionStorage());
+builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddTransient<TodoListService>();
 
 
