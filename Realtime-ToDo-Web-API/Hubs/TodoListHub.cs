@@ -203,7 +203,7 @@ public class TodoListHub : Hub<ITodoListClient>
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (WorkspaceConnection.IsConnected)
             DisconnectFromWorkspace().Wait();
 
         return base.OnDisconnectedAsync(exception);

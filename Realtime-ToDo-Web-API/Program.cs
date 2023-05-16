@@ -48,5 +48,7 @@ app.UseCors(policy => policy
           .AllowCredentials());
 
 app.MapHub<TodoListHub>("/Board");
+app.MapHub<WorkspacesHub>("/WorkspacesHub");
+
 
 app.Run();

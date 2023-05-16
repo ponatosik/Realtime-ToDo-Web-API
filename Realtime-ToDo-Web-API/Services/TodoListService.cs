@@ -23,6 +23,32 @@ public class TodoListService
         await _todoListContext.SaveChangesAsync();
         return workspace;
     }
+    public async Task<Workspace?> UpdateWorkspaceInfo(int workspaceId, Action<Workspace> modifierDelegate)
+    {
+        Workspace? targetWorkspace = GetWorkspaceInfo(workspaceId);
+        if (targetWorkspace == null) return null;
+
+        int id = targetWorkspace.Id;
+        var tasks = targetWorkspace.Tasks;
+
+        modifierDelegate(targetWorkspace);
+
+        targetWorkspace.Id = id;
+        targetWorkspace.Tasks = tasks;
+
+        await _todoListContext.SaveChangesAsync();
+        return targetWorkspace;
+    }
+
+    public async Task<Workspace?> DeleteWorkspace(int workspaceId)
+    {
+        Workspace? targetWorkspace = GetWorkspaceInfo(workspaceId);
+        if (targetWorkspace == null) return null;
+
+        _todoListContext.Workspaces?.Remove(targetWorkspace);
+        await _todoListContext.SaveChangesAsync();
+        return targetWorkspace;
+    }
 
     public IEnumerable<Workspace> GetWorkspaces()
     {

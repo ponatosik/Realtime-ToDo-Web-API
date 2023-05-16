@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Realtime_ToDo_Web_API.Hubs;
+using System.Collections.Generic;
 
 namespace Realtime_ToDo_Web_API.Services.SignalR;
 
@@ -37,5 +38,10 @@ public class ConnectionManager
     public void Disconnect(string connectionId)
     {
         _connectionIdByWorkpaceId.Remove(connectionId);
+    }
+    public void DisconnectFromWorkspaceAll(int workspaceId)
+    {
+        foreach (var connection in _connectionIdByWorkpaceId.Where(pair => pair.Value == workspaceId))
+            Disconnect(connection.Key);
     }
 }
