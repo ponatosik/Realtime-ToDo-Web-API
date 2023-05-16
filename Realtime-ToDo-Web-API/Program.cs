@@ -13,8 +13,12 @@ builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Set up your connection string in appsettings.json or dotnet secrets
+// Or use in memory database if you have no external database
 builder.Services.AddDbContext<TodoListContext>(options =>
-    options.UseInMemoryDatabase("TodoListInMemoryDatabase")
+    //options.UseInMemoryDatabase("TodoListInMemoryDatabase")
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TodoListDB"))
 );
 
 // Add custom services and singletons for dependency injection
