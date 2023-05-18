@@ -17,7 +17,7 @@ public class TodoListController : ControllerBase
     [HttpGet("{workspaceId}", Name = "GetTodoListworkspaceId")]
     public IEnumerable<TodoTask>? Get(int workspaceId)
     {
-        return _todoListService.GetWorkspaceTasks(workspaceId)?.OrderBy(task => task.Id);
+        return _todoListService.GetWorkspaceTasks(workspaceId)?.OrderBy(task => task.Order);
     }
 
     [HttpPut("{workspaceId}", Name = "PutTodoListByworkspaceId")]

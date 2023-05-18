@@ -104,14 +104,15 @@ public class TodoListService
             var workspaceTasks = GetWorkspaceTasks(workspaceId);
             if (workspaceTasks == null) return null;
 
+            int newOrded = Math.Clamp(targetTask.Order, 0, workspaceTasks.Count() - 1);
+            int lowerBoundOrder = order < newOrded ? order : newOrded;
+            int upperBoundOrder = order > newOrded ? order : newOrded;
+            int shiftDirection = Math.Sign(newOrded - order);
 
-            targetTask.Order = Math.Clamp(targetTask.Order, 0, workspaceTasks.Count() - 1);
-            int lowerBoundOrder = order < targetTask.Order ? order : targetTask.Order;
-            int upperBoundOrder = order > targetTask.Order ? order : targetTask.Order;
-            int shiftDirection = Math.Sign(targetTask.Order - order);
-
-            foreach (TodoTask task in workspaceTasks.Where((task) => task.Order > targetTask.Order))
+            foreach (TodoTask task in workspaceTasks.Where((task) => task.Order <= upperBoundOrder && task.Order >= lowerBoundOrder))
                 task.Order -= shiftDirection;
+
+            targetTask.Order = newOrded;
         }
 
         await _todoListContext.SaveChangesAsync();
