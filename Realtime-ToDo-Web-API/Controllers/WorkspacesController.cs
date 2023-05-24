@@ -15,13 +15,13 @@ public class WorkspacesController : ControllerBase
     }
 
     [HttpGet(Name = "GetWorkspaces")]
-    public IEnumerable<Workspace> Get()
+    public IEnumerable<WorkspaceInfo> Get()
     {
-        return _todoListService.GetWorkspaces();
+        return _todoListService.GetWorkspacesInfo();
     }
 
     [HttpPut(Name = "PutWorkspaces")]
-    public async Task<Workspace> PutAsync(string worskspaceName)
+    public async Task<WorkspaceInfo> PutAsync(string worskspaceName)
     {
         return await _todoListService.AddWorkspace(worskspaceName);
     }

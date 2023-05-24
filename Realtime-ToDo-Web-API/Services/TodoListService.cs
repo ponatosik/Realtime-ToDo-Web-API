@@ -12,7 +12,7 @@ public class TodoListService
         _todoListContext = todoListContext;
     }
 
-    public async Task<Workspace> AddWorkspace(string worskspaceName) 
+    public async Task<WorkspaceInfo> AddWorkspace(string worskspaceName) 
     {
         Workspace workspace = new()
         {
@@ -21,43 +21,50 @@ public class TodoListService
         };
         await _todoListContext.Workspaces.AddAsync(workspace);
         await _todoListContext.SaveChangesAsync();
-        return workspace;
+        return new WorkspaceInfo(workspace);
     }
-    public async Task<Workspace?> UpdateWorkspaceInfo(int workspaceId, Action<Workspace> modifierDelegate)
+    public async Task<WorkspaceInfo?> UpdateWorkspaceInfo(int workspaceId, Action<WorkspaceInfo> modifierDelegate)
     {
-        Workspace? targetWorkspace = GetWorkspaceInfo(workspaceId);
+        Workspace? targetWorkspace = GetWorkspace(workspaceId);
         if (targetWorkspace == null) return null;
 
-        int id = targetWorkspace.Id;
-        var tasks = targetWorkspace.Tasks;
+        WorkspaceInfo workspaceInfo = new WorkspaceInfo(targetWorkspace);
 
-        modifierDelegate(targetWorkspace);
+        modifierDelegate(workspaceInfo);
 
-        targetWorkspace.Id = id;
-        targetWorkspace.Tasks = tasks;
+        targetWorkspace.Name = workspaceInfo.Name;
 
         await _todoListContext.SaveChangesAsync();
-        return targetWorkspace;
+        return new WorkspaceInfo(targetWorkspace);
     }
 
-    public async Task<Workspace?> DeleteWorkspace(int workspaceId)
+    public async Task<WorkspaceInfo?> DeleteWorkspace(int workspaceId)
     {
-        Workspace? targetWorkspace = GetWorkspaceInfo(workspaceId);
+        Workspace? targetWorkspace = GetWorkspace(workspaceId);
         if (targetWorkspace == null) return null;
 
         _todoListContext.Workspaces?.Remove(targetWorkspace);
         await _todoListContext.SaveChangesAsync();
-        return targetWorkspace;
+        return new WorkspaceInfo(targetWorkspace);
     }
 
-    public IEnumerable<Workspace> GetWorkspaces()
+    public IEnumerable<WorkspaceInfo> GetWorkspacesInfo()
     {
-        return _todoListContext.Workspaces;
+        return _todoListContext.Workspaces.Include(workspace => workspace.Tasks).Select(workspace => new WorkspaceInfo(workspace));
     }
 
-    public Workspace? GetWorkspaceInfo(int workspaceId) 
+    public WorkspaceInfo? GetWorkspaceInfo(int workspaceId) 
     {
-        return _todoListContext.Workspaces.FirstOrDefault(workspace => workspace.Id == workspaceId);
+        Workspace? targetWorkspace = GetWorkspace(workspaceId);
+        if(targetWorkspace == null)
+            return null;
+
+        return new WorkspaceInfo(targetWorkspace);
+    }
+
+    public Workspace? GetWorkspace(int workspaceId)
+    {
+        return _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId);
     }
 
     public IEnumerable<TodoTask>? GetWorkspaceTasks(int workspaceId)

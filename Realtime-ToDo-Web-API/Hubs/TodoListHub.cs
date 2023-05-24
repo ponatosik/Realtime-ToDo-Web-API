@@ -158,7 +158,7 @@ public class TodoListHub : Hub<ITodoListClient>
 
     public async Task ConnectToWorkspace(int workspaceId)
     {
-        Workspace? targetWorkspace = _todoListService.GetWorkspaceInfo(workspaceId);
+        WorkspaceInfo? targetWorkspace = _todoListService.GetWorkspaceInfo(workspaceId);
         if (targetWorkspace == null)
         {
             await Clients.Caller.Error($"Workspace with id {workspaceId} does not exist");

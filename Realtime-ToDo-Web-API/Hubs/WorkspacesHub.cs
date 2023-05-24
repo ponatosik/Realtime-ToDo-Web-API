@@ -18,13 +18,13 @@ public class WorkspacesHub : Hub<IWorkspacesClient>
 
     public async Task AddWorkspace(string workspaceName)
     {
-        Workspace workspace = await _TodoListService.AddWorkspace(workspaceName);
+        WorkspaceInfo workspace = await _TodoListService.AddWorkspace(workspaceName);
         await Clients.All.AddWorkspace(workspace);
     }
 
     public async Task UpdateWorkspaceName(int workspaceId, string newName)
     {
-        Workspace? updatedWorkspace = await _TodoListService.UpdateWorkspaceInfo(workspaceId, (targetWorkspace) => {
+        WorkspaceInfo? updatedWorkspace = await _TodoListService.UpdateWorkspaceInfo(workspaceId, (targetWorkspace) => {
             targetWorkspace.Name = newName;
         });
 
@@ -39,7 +39,7 @@ public class WorkspacesHub : Hub<IWorkspacesClient>
 
     public async Task DeleteWorkspace(int workspaceId)
     {
-        Workspace? deletedWorkspace = await _TodoListService.DeleteWorkspace(workspaceId);
+        WorkspaceInfo? deletedWorkspace = await _TodoListService.DeleteWorkspace(workspaceId);
         if (deletedWorkspace == null)
         {
             await Clients.Caller.Error($"Task with id {workspaceId} does not exist");
