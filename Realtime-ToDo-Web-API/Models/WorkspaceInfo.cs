@@ -6,10 +6,11 @@ public class WorkspaceInfo
     public string Name { get; set; }
     public int TaskCount { get; set; }
 
-    public WorkspaceInfo(Workspace workspace) 
+    public WorkspaceInfo(Workspace workspace, int? taskCount)
     {
         Id = workspace.Id;
         Name = workspace.Name;
-        TaskCount = workspace.Tasks?.Count ?? 0;
+        TaskCount = taskCount ?? 0;
     }
+    public WorkspaceInfo(Workspace workspace) : this(workspace, workspace.Tasks?.Count) { }
 }

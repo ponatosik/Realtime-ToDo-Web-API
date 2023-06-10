@@ -25,17 +25,19 @@ public class TodoListService
     }
     public async Task<WorkspaceInfo?> UpdateWorkspaceInfo(int workspaceId, Action<WorkspaceInfo> modifierDelegate)
     {
+        WorkspaceInfo? targetWorkspaceInfo = GetWorkspaceInfo(workspaceId);
+        if (targetWorkspaceInfo == null) return null;
+
+        modifierDelegate(targetWorkspaceInfo);
+        targetWorkspaceInfo.Id = workspaceId;
+
         Workspace? targetWorkspace = GetWorkspace(workspaceId);
         if (targetWorkspace == null) return null;
 
-        WorkspaceInfo workspaceInfo = new WorkspaceInfo(targetWorkspace);
-
-        modifierDelegate(workspaceInfo);
-
-        targetWorkspace.Name = workspaceInfo.Name;
+        targetWorkspace.Name = targetWorkspaceInfo.Name;
 
         await _todoListContext.SaveChangesAsync();
-        return new WorkspaceInfo(targetWorkspace);
+        return targetWorkspaceInfo;
     }
 
     public async Task<WorkspaceInfo?> DeleteWorkspace(int workspaceId)
@@ -50,13 +52,16 @@ public class TodoListService
 
     public IEnumerable<WorkspaceInfo> GetWorkspacesInfo()
     {
-        return _todoListContext.Workspaces.Include(workspace => workspace.Tasks).Select(workspace => new WorkspaceInfo(workspace));
+        return _todoListContext.Workspaces
+            .Include(workspace => workspace.Tasks)
+            .Select(workspace => new WorkspaceInfo(workspace, workspace.Tasks.Count()));
     }
 
     public WorkspaceInfo? GetWorkspaceInfo(int workspaceId) 
     {
         Workspace? targetWorkspace = GetWorkspace(workspaceId);
-        if(targetWorkspace == null)
+
+        if (targetWorkspace == null)
             return null;
 
         return new WorkspaceInfo(targetWorkspace);
@@ -64,12 +69,29 @@ public class TodoListService
 
     public Workspace? GetWorkspace(int workspaceId)
     {
-        return _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId);
+        return  _todoListContext.Workspaces
+                .FirstOrDefault(workspace => workspace.Id == workspaceId);
     }
-
-    public IEnumerable<TodoTask>? GetWorkspaceTasks(int workspaceId)
+    public Workspace? GetWorkspaceWithTasks(int workspaceId)
     {
-        return _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId)?.Tasks;
+        return  _todoListContext.Workspaces
+                .Include(workspace => workspace.Tasks)
+                .FirstOrDefault(workspace => workspace.Id == workspaceId);
+    }
+    public IList<TodoTask>? GetWorkspaceTasks(int workspaceId)
+    {
+        return  _todoListContext.Workspaces
+                .Include(workspace => workspace.Tasks)
+                .FirstOrDefault(workspace => workspace.Id == workspaceId)
+                ?.Tasks;
+    }
+    public int? GetWorkspaceTasksCount(int workspaceId)
+    {
+        return _todoListContext.Workspaces
+                .Include(workspace => workspace.Tasks)
+                .FirstOrDefault(workspace => workspace.Id == workspaceId)
+                ?.Tasks
+                ?.Count;
     }
 
     public TodoTask? GetTask(int workspaceId, int taskId)
@@ -83,7 +105,7 @@ public class TodoListService
 
     public async Task<TodoTask?> AddTask(int workspaceId, TodoTask task) 
     {
-        Workspace? workspace = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId);
+        Workspace? workspace = GetWorkspaceWithTasks(workspaceId);
         if (workspace == null)
             return null;
 
@@ -128,7 +150,7 @@ public class TodoListService
 
     public async Task<TodoTask?> DeleteTask(int workspaceId, int taskId) 
     {
-        var workspaceTasks = _todoListContext.Workspaces.Include(workspace => workspace.Tasks).FirstOrDefault(workspace => workspace.Id == workspaceId)?.Tasks;
+        var workspaceTasks = GetWorkspaceTasks(workspaceId);
         if (workspaceTasks == null) return null;
 
         TodoTask? targetTask = workspaceTasks.FirstOrDefault(task => task.Id == taskId);
