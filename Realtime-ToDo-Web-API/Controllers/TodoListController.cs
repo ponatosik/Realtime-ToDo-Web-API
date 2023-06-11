@@ -45,20 +45,23 @@ public class TodoListController : ControllerBase
     }
 
     [HttpDelete("{workspaceId}/{taskId}")]
-    public async Task<ActionResult<TodoTask>> Delete(TodoTask task, int workspaceId, int taskId)
+    public async Task<ActionResult<TodoTask>> Delete(int workspaceId, int taskId)
     {
         TodoTask? deletedTask = await _todoListService.DeleteTask(workspaceId, taskId);
         if (deletedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
         return Ok(deletedTask);
     }
 
-    [HttpPut("{workspaceId}")]
-    public async Task<ActionResult<TodoTask>> Put(TodoTask newTask, int workspaceId)
+    [HttpPatch("{workspaceId}")]
+    public async Task<ActionResult<TodoTask>> Patch(TodoTask newTask, int workspaceId)
     {
         var taskId = newTask.Id;
         TodoTask? updatedTask = await _todoListService.UpdateTask(workspaceId, taskId, task =>
         {
-            task = newTask;
+            task.Title = newTask.Title;
+            task.Completed = newTask.Completed;
+            task.Deadline = newTask.Deadline;
+            task.Order = newTask.Order;
         });
         if (updatedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
         return Ok(updatedTask);
