@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Realtime_ToDo_Web_API.Hubs;
+using Realtime_ToDo_Web_API.Models;
 using System.Collections.Generic;
 
 namespace Realtime_ToDo_Web_API.Services.SignalR;
@@ -44,4 +45,13 @@ public class ConnectionManager
         foreach (var connection in _connectionIdByWorkpaceId.Where(pair => pair.Value == workspaceId))
             Disconnect(connection.Key);
     }
+
+    public ITodoListClient WorkspaceGroup(int workspaceId) 
+    {
+        return _hubContext.Clients.Group(GenerateGroupName(workspaceId));
+    }
+    public string GenerateGroupName(int workspaceId)
+    {
+        return $"Workspace group: {workspaceId}";
+    } 
 }

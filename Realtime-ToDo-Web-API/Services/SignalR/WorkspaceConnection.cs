@@ -20,7 +20,7 @@ public class WorkspaceConnection : IWorkspaceConnection
     public bool IsConnected => _manager.HasConnection(_callerContext.ConnectionId);
     public int WorkspaceId => _manager.GetWorkspaceId(_callerContext.ConnectionId);
 
-    public ITodoListClient Group => _hubContext.Clients.Group(GroupName(WorkspaceId));
+    public ITodoListClient Group => _manager.WorkspaceGroup(WorkspaceId);
 
     public void Connect(int workspaceId)
     {
@@ -36,5 +36,5 @@ public class WorkspaceConnection : IWorkspaceConnection
         _manager.Disconnect(_callerContext.ConnectionId);
     }
 
-    private string GroupName(int workspaceId) => $"Workspace group: {workspaceId}";
+    private string GroupName(int workspaceId) => _manager.GenerateGroupName(workspaceId);
 }
