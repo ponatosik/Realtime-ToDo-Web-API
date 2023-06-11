@@ -1,7 +1,10 @@
 using System.Collections;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Realtime_ToDo_Web_API.Hubs;
 using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
+using Realtime_ToDo_Web_API.Services.SignalR;
 
 namespace Realtime_ToDo_Web_API.Controllers;
 
@@ -10,9 +13,12 @@ namespace Realtime_ToDo_Web_API.Controllers;
 public class TodoListController : ControllerBase
 {
     private readonly TodoListService _todoListService;
-    public TodoListController(TodoListService todoListService)
+    private readonly ConnectionManager _connectionManager;
+
+    public TodoListController(TodoListService todoListService, ConnectionManager connectionManager)
     {
         _todoListService = todoListService;
+        _connectionManager = connectionManager;
     }
 
     [HttpGet("{workspaceId}")]
@@ -41,6 +47,8 @@ public class TodoListController : ControllerBase
             workspaceId = workspaceId,
             taskId = createdTask.Id
         };
+
+        await _connectionManager.WorkspaceGroup(workspaceId).AddTask(createdTask);
         return CreatedAtAction(nameof(Get), routeValues, createdTask);
     }
 
@@ -49,6 +57,8 @@ public class TodoListController : ControllerBase
     {
         TodoTask? deletedTask = await _todoListService.DeleteTask(workspaceId, taskId);
         if (deletedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
+
+        await _connectionManager.WorkspaceGroup(workspaceId).DeleteTask(deletedTask.Id);
         return Ok(deletedTask);
     }
 
@@ -64,6 +74,8 @@ public class TodoListController : ControllerBase
             task.Order = newTask.Order;
         });
         if (updatedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
+
+        await _connectionManager.WorkspaceGroup(workspaceId).UpdateTask(updatedTask);
         return Ok(updatedTask);
     }
 }
