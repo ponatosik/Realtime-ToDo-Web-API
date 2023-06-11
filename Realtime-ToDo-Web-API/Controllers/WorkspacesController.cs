@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Realtime_ToDo_Web_API.Hubs;
 using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
 using Realtime_ToDo_Web_API.Services.SignalR;
@@ -11,11 +13,15 @@ public class WorkspacesController : ControllerBase
 {
     private readonly TodoListService _todoListService;
     private readonly ConnectionManager _connectionManager;
+    private readonly IHubContext<WorkspacesHub, IWorkspacesClient> _hubContext;
 
-    public WorkspacesController(TodoListService todoListService, ConnectionManager connectionManager)
+    public WorkspacesController(TodoListService todoListService,
+                                ConnectionManager connectionManager,
+                                IHubContext<WorkspacesHub, IWorkspacesClient> hubContext)
     {
         _todoListService = todoListService;
         _connectionManager = connectionManager;
+        _hubContext = hubContext;
     }
 
     [HttpGet]
@@ -40,6 +46,8 @@ public class WorkspacesController : ControllerBase
         {
             workspaceId = createdWorkspace.Id,
         };
+
+        await _hubContext.Clients.All.AddWorkspace(createdWorkspace);
         return CreatedAtAction(nameof(Get), routeValues, createdWorkspace);
     }
 
@@ -51,6 +59,8 @@ public class WorkspacesController : ControllerBase
             workspace.Name = newWorkspaceName;
         });
         if (updatedWorkspace == null) return NotFound($"Workspace with id {workspaceId} not found");
+
+        await _hubContext.Clients.All.UpdateWorkspaceName(updatedWorkspace.Id, updatedWorkspace.Name);
         return Ok(updatedWorkspace);
     }
 
@@ -61,6 +71,8 @@ public class WorkspacesController : ControllerBase
         if (deletedWorkspace == null) return NotFound($"Workspace with id {workspaceId} not found");
         if (_connectionManager.GetConnectedUsers(workspaceId) > 0)
             return Conflict($"Workspace with id {workspaceId} is currently used by other users. Try again later");
+
+        await _hubContext.Clients.All.DeleteWorkspace(deletedWorkspace.Id);
         return Ok(deletedWorkspace);
     }
 }
