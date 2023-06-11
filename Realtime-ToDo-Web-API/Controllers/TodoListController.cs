@@ -1,3 +1,4 @@
+using System.Collections;
 using Microsoft.AspNetCore.Mvc;
 using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
@@ -15,14 +16,18 @@ public class TodoListController : ControllerBase
     }
 
     [HttpGet("{workspaceId}", Name = "GetTodoListworkspaceId")]
-    public IEnumerable<TodoTask>? Get(int workspaceId)
+    public ActionResult<IEnumerable<TodoTask>> Get(int workspaceId)
     {
-        return _todoListService.GetWorkspaceTasks(workspaceId)?.OrderBy(task => task.Order);
+        IEnumerable<TodoTask>? tasks = _todoListService.GetWorkspaceTasks(workspaceId)?.OrderBy(task => task.Order);
+        if (tasks == null) return NotFound($"Workspace with id {workspaceId} not found");
+        return Ok(tasks!);
     }
 
     [HttpPut("{workspaceId}", Name = "PutTodoListByworkspaceId")]
-    public async Task<TodoTask?> PutAsync(TodoTask task, int workspaceId)
+    public async Task<ActionResult<TodoTask>> Put(TodoTask task, int workspaceId)
     {
-        return await _todoListService.AddTask(workspaceId, task);
+        TodoTask? createdTask = await _todoListService.AddTask(workspaceId, task);
+        if (createdTask == null) return NotFound($"Workspace with id {workspaceId} not found");
+        return Ok(createdTask);
     }
 }
