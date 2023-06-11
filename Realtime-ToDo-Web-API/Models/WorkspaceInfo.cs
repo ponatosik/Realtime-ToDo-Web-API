@@ -3,7 +3,7 @@
 public class WorkspaceInfo
 {
     public int Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = "New workspace";
     public int TaskCount { get; set; }
 
     public WorkspaceInfo(Workspace workspace, int? taskCount)
@@ -13,4 +13,5 @@ public class WorkspaceInfo
         TaskCount = taskCount ?? 0;
     }
     public WorkspaceInfo(Workspace workspace) : this(workspace, workspace.Tasks?.Count) { }
+    public WorkspaceInfo() { }
 }
