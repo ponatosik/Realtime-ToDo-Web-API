@@ -9,11 +9,11 @@ namespace Realtime_ToDo_Web_API.Hubs;
 public class TodoListHub : Hub<ITodoListClient>
 {
     private readonly TodoListService _todoListService;
-    private readonly ConnectionManager _connectionManager;
-    public TodoListHub(TodoListService todoListService, ConnectionManager connectionManager)
+    private readonly WorkspaceRoomManager _workspaceRoomManager;
+    public TodoListHub(TodoListService todoListService, WorkspaceRoomManager workspaceRoomManager)
     {
         _todoListService = todoListService;
-        _connectionManager = connectionManager;
+        _workspaceRoomManager = workspaceRoomManager;
     }
 
     public async Task AddTask(string title, DateTime? deadline)
@@ -31,7 +31,7 @@ public class TodoListHub : Hub<ITodoListClient>
         };
 
         await _todoListService.AddTask(WorkspaceConnection.WorkspaceId, task);
-        await WorkspaceConnection.Group.AddTask(task);
+        await WorkspaceConnection.Clients.AddTask(task);
     }
 
     public async Task UpdateTask(int taskId, TodoTask newTask)
@@ -55,7 +55,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UpdateTask(updatedTask);
+        await WorkspaceConnection.Clients.UpdateTask(updatedTask);
     }
 
     public async Task DeleteTask(int taskId)
@@ -73,7 +73,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.DeleteTask(taskId);
+        await WorkspaceConnection.Clients.DeleteTask(taskId);
     }
 
     public async Task UpdateTaskTitle(int taskId, string newTitle)
@@ -93,7 +93,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UpdateTaskTitle(taskId, updatedTask.Title);
+        await WorkspaceConnection.Clients.UpdateTaskTitle(taskId, updatedTask.Title);
     }
 
     public async Task UpdateTaskCompleted(int taskId, bool newCompleted)
@@ -113,7 +113,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UpdateTaskCompleted(taskId, updatedTask.Completed);
+        await WorkspaceConnection.Clients.UpdateTaskCompleted(taskId, updatedTask.Completed);
     }
 
     public async Task UpdateTaskDeadline(int taskId, DateTime newDeadline)
@@ -133,7 +133,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UpdateTaskDeadline(taskId, updatedTask.Deadline);
+        await WorkspaceConnection.Clients.UpdateTaskDeadline(taskId, updatedTask.Deadline);
     }
 
     public async Task UpdateTaskOrder(int taskId, int destinationOrder)
@@ -153,7 +153,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UpdateTaskOrder(taskId, updatedTask.Order);
+        await WorkspaceConnection.Clients.UpdateTaskOrder(taskId, updatedTask.Order);
     }
 
     public async Task ConnectToWorkspace(int workspaceId)
@@ -167,12 +167,12 @@ public class TodoListHub : Hub<ITodoListClient>
 
         if (WorkspaceConnection.IsConnected)
         {
-            await WorkspaceConnection.Group.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
+            await WorkspaceConnection.Clients.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
             WorkspaceConnection.Disconnect();
         } 
 
         WorkspaceConnection.Connect(workspaceId);
-        await WorkspaceConnection.Group.UserConnected(WorkspaceConnection.ConnectedUsersCount);
+        await WorkspaceConnection.Clients.UserConnected(WorkspaceConnection.ConnectedUsersCount);
     }
 
     public async Task DisconnectFromWorkspace()
@@ -183,7 +183,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Group.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
+        await WorkspaceConnection.Clients.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
         WorkspaceConnection.Disconnect();
     }
 
@@ -209,14 +209,14 @@ public class TodoListHub : Hub<ITodoListClient>
         return base.OnDisconnectedAsync(exception);
     }
 
-    protected IWorkspaceConnection WorkspaceConnection
+    protected IWorkspaceRoom WorkspaceConnection
     {
         get
         {
             if (_workspaceConnection != null) return _workspaceConnection;
-            _workspaceConnection = _connectionManager.GetWorkspaceConnection(Context);
+            _workspaceConnection = _workspaceRoomManager.GetWorkspaceRoom(Context);
             return _workspaceConnection;
         }
     }
-    private IWorkspaceConnection? _workspaceConnection;
+    private IWorkspaceRoom? _workspaceConnection;
 }

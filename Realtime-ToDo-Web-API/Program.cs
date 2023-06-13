@@ -22,7 +22,7 @@ builder.Services.AddDbContext<TodoListContext>(options =>
 );
 
 // Add custom services and singletons for dependency injection
-builder.Services.AddSingleton<ConnectionManager>();
+builder.Services.AddSingleton<WorkspaceRoomManager>();
 builder.Services.AddTransient<TodoListService>();
 
 

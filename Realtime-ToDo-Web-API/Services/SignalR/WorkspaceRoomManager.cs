@@ -5,19 +5,19 @@ using System.Collections.Generic;
 
 namespace Realtime_ToDo_Web_API.Services.SignalR;
 
-public class ConnectionManager
+public class WorkspaceRoomManager
 {
     private readonly Dictionary<string, int> _connectionIdByWorkpaceId;
     private readonly IHubContext<TodoListHub, ITodoListClient> _hubContext;
-    public ConnectionManager(IHubContext<TodoListHub, ITodoListClient> todoListHub)
+    public WorkspaceRoomManager(IHubContext<TodoListHub, ITodoListClient> todoListHub)
     {
         _connectionIdByWorkpaceId = new Dictionary<string, int>();
         _hubContext = todoListHub;
     }
 
-    public IWorkspaceConnection GetWorkspaceConnection(HubCallerContext context)
+    public IWorkspaceRoom GetWorkspaceRoom(HubCallerContext context)
     {
-        return new WorkspaceConnection(context, _hubContext, this);
+        return new WorkspaceRoom(context, _hubContext, this);
     }
 
     public int GetWorkspaceId(string connectionId)
@@ -28,7 +28,7 @@ public class ConnectionManager
     {
         return _connectionIdByWorkpaceId.Values.Count(storedWorkspaceId => storedWorkspaceId == workspaceId);
     }
-    public bool HasConnection(string connectionId)
+    public bool IsConnected(string connectionId)
     {
         return _connectionIdByWorkpaceId.ContainsKey(connectionId);
     }
@@ -40,13 +40,13 @@ public class ConnectionManager
     {
         _connectionIdByWorkpaceId.Remove(connectionId);
     }
-    public void DisconnectFromWorkspaceAll(int workspaceId)
+    public void CloseWorkspaceRoom(int workspaceId)
     {
         foreach (var connection in _connectionIdByWorkpaceId.Where(pair => pair.Value == workspaceId))
             Disconnect(connection.Key);
     }
 
-    public ITodoListClient WorkspaceGroup(int workspaceId) 
+    public ITodoListClient Clients(int workspaceId) 
     {
         return _hubContext.Clients.Group(GenerateGroupName(workspaceId));
     }

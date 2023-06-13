@@ -13,12 +13,15 @@ namespace Realtime_ToDo_Web_API.Controllers;
 public class TodoListController : ControllerBase
 {
     private readonly TodoListService _todoListService;
-    private readonly ConnectionManager _connectionManager;
+    private readonly WorkspaceRoomManager _workspacesRoom;
 
-    public TodoListController(TodoListService todoListService, ConnectionManager connectionManager)
+
+    public TodoListController(TodoListService todoListService,
+                              WorkspaceRoomManager workspacesRoomManager,
+                              IHubContext<TodoListHub, ITodoListClient> hubContext)
     {
         _todoListService = todoListService;
-        _connectionManager = connectionManager;
+        _workspacesRoom = workspacesRoomManager; 
     }
 
     [HttpGet("{workspaceId}")]
@@ -48,7 +51,7 @@ public class TodoListController : ControllerBase
             taskId = createdTask.Id
         };
 
-        await _connectionManager.WorkspaceGroup(workspaceId).AddTask(createdTask);
+        await _workspacesRoom.Clients(workspaceId).AddTask(createdTask);
         return CreatedAtAction(nameof(Get), routeValues, createdTask);
     }
 
@@ -58,7 +61,7 @@ public class TodoListController : ControllerBase
         TodoTask? deletedTask = await _todoListService.DeleteTask(workspaceId, taskId);
         if (deletedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
 
-        await _connectionManager.WorkspaceGroup(workspaceId).DeleteTask(deletedTask.Id);
+        await _workspacesRoom.Clients(workspaceId).DeleteTask(deletedTask.Id);
         return Ok(deletedTask);
     }
 
@@ -75,7 +78,7 @@ public class TodoListController : ControllerBase
         });
         if (updatedTask == null) return NotFound($"Task with id {taskId} not found in workspace with id {workspaceId}");
 
-        await _connectionManager.WorkspaceGroup(workspaceId).UpdateTask(updatedTask);
+        await _workspacesRoom.Clients(workspaceId).UpdateTask(updatedTask);
         return Ok(updatedTask);
     }
 }

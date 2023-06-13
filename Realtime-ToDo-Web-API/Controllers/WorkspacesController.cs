@@ -12,11 +12,11 @@ namespace Realtime_ToDo_Web_API.Controllers;
 public class WorkspacesController : ControllerBase
 {
     private readonly TodoListService _todoListService;
-    private readonly ConnectionManager _connectionManager;
+    private readonly WorkspaceRoomManager _connectionManager;
     private readonly IHubContext<WorkspacesHub, IWorkspacesClient> _hubContext;
 
     public WorkspacesController(TodoListService todoListService,
-                                ConnectionManager connectionManager,
+                                WorkspaceRoomManager connectionManager,
                                 IHubContext<WorkspacesHub, IWorkspacesClient> hubContext)
     {
         _todoListService = todoListService;
