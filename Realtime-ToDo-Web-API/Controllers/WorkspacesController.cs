@@ -12,15 +12,15 @@ namespace Realtime_ToDo_Web_API.Controllers;
 public class WorkspacesController : ControllerBase
 {
     private readonly TodoListService _todoListService;
-    private readonly WorkspaceRoomManager _connectionManager;
+    private readonly WorkspaceRoomManager _workspaceRoomManager;
     private readonly IHubContext<WorkspacesHub, IWorkspacesClient> _hubContext;
 
     public WorkspacesController(TodoListService todoListService,
-                                WorkspaceRoomManager connectionManager,
+                                WorkspaceRoomManager workspaceRoomManager,
                                 IHubContext<WorkspacesHub, IWorkspacesClient> hubContext)
     {
         _todoListService = todoListService;
-        _connectionManager = connectionManager;
+        _workspaceRoomManager = workspaceRoomManager;
         _hubContext = hubContext;
     }
 
@@ -67,12 +67,13 @@ public class WorkspacesController : ControllerBase
     [HttpDelete("{workspaceId}")]
     public async Task<ActionResult<WorkspaceInfo>> Delete(int workspaceId)
     {
-        WorkspaceInfo? deletedWorkspace = await _todoListService.DeleteWorkspace(workspaceId);
-        if (deletedWorkspace == null) return NotFound($"Workspace with id {workspaceId} not found");
-        if (_connectionManager.GetConnectedUsers(workspaceId) > 0)
-            return Conflict($"Workspace with id {workspaceId} is currently used by other users. Try again later");
+        WorkspaceInfo? targetWorkspace = _todoListService.GetWorkspaceInfo(workspaceId);
+        if (targetWorkspace == null) return NotFound($"Workspace with id {workspaceId} not found");
 
-        await _hubContext.Clients.All.DeleteWorkspace(deletedWorkspace.Id);
+        await _workspaceRoomManager.CloseWorkspaceRoomAsync(targetWorkspace.Id);
+        await _hubContext.Clients.All.DeleteWorkspace(targetWorkspace.Id);
+        WorkspaceInfo? deletedWorkspace = await _todoListService.DeleteWorkspace(workspaceId);
+
         return Ok(deletedWorkspace);
     }
 }

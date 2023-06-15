@@ -12,6 +12,9 @@ public interface ITodoListClient
     Task UpdateTaskOrder(int taskId, int order);
     Task DeleteTask(int taskId);
 
+    Task Connected(int workspaceId);
+    Task Disconnected(int workspaceId);
+
     Task UserConnected(int userCount);
     Task UserDisconnected(int userCount);
 

@@ -39,15 +39,16 @@ public class WorkspacesHub : Hub<IWorkspacesClient>
 
     public async Task DeleteWorkspace(int workspaceId)
     {
-        WorkspaceInfo? deletedWorkspace = await _todoListService.DeleteWorkspace(workspaceId);
-        if (deletedWorkspace == null)
+        WorkspaceInfo? targetWorkspace = _todoListService.GetWorkspaceInfo(workspaceId);
+        if (targetWorkspace == null)
         {
             await Clients.Caller.Error($"Task with id {workspaceId} does not exist");
             return;
         }
 
-        _workspaceRoomManager.CloseWorkspaceRoom(workspaceId);
+        await _workspaceRoomManager.CloseWorkspaceRoomAsync(workspaceId);
         await Clients.All.DeleteWorkspace(workspaceId);
+        await _todoListService.DeleteWorkspace(workspaceId);
     }
 
 }

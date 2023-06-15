@@ -18,7 +18,7 @@ public class TodoListHub : Hub<ITodoListClient>
 
     public async Task AddTask(string title, DateTime? deadline)
     {
-        if (!WorkspaceConnection.IsConnected) 
+        if (!WorkspaceRoom.IsConnected) 
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
@@ -30,19 +30,19 @@ public class TodoListHub : Hub<ITodoListClient>
             Deadline = deadline
         };
 
-        await _todoListService.AddTask(WorkspaceConnection.WorkspaceId, task);
-        await WorkspaceConnection.Clients.AddTask(task);
+        await _todoListService.AddTask(WorkspaceRoom.WorkspaceId, task);
+        await WorkspaceRoom.Clients.AddTask(task);
     }
 
     public async Task UpdateTask(int taskId, TodoTask newTask)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceConnection.WorkspaceId, taskId, (targetTask) => {
+        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceRoom.WorkspaceId, taskId, (targetTask) => {
             targetTask.Title = newTask.Title;
             targetTask.Completed = newTask.Completed;
             targetTask.Deadline = newTask.Deadline;
@@ -55,36 +55,36 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Clients.UpdateTask(updatedTask);
+        await WorkspaceRoom.Clients.UpdateTask(updatedTask);
     }
 
     public async Task DeleteTask(int taskId)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? deletedTask = await _todoListService.DeleteTask(WorkspaceConnection.WorkspaceId, taskId);
+        TodoTask? deletedTask = await _todoListService.DeleteTask(WorkspaceRoom.WorkspaceId, taskId);
         if (deletedTask == null)
         {
             await Clients.Caller.Error($"Task with id {taskId} does not exist");
             return;
         }
 
-        await WorkspaceConnection.Clients.DeleteTask(taskId);
+        await WorkspaceRoom.Clients.DeleteTask(taskId);
     }
 
     public async Task UpdateTaskTitle(int taskId, string newTitle)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceConnection.WorkspaceId, taskId, (targetTask) => {
+        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceRoom.WorkspaceId, taskId, (targetTask) => {
             targetTask.Title = newTitle;
         });
         if (updatedTask == null)
@@ -93,18 +93,18 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Clients.UpdateTaskTitle(taskId, updatedTask.Title);
+        await WorkspaceRoom.Clients.UpdateTaskTitle(taskId, updatedTask.Title);
     }
 
     public async Task UpdateTaskCompleted(int taskId, bool newCompleted)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceConnection.WorkspaceId, taskId, (targetTask) => {
+        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceRoom.WorkspaceId, taskId, (targetTask) => {
             targetTask.Completed = newCompleted;
         });
         if (updatedTask == null)
@@ -113,18 +113,18 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Clients.UpdateTaskCompleted(taskId, updatedTask.Completed);
+        await WorkspaceRoom.Clients.UpdateTaskCompleted(taskId, updatedTask.Completed);
     }
 
     public async Task UpdateTaskDeadline(int taskId, DateTime newDeadline)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceConnection.WorkspaceId, taskId, (targetTask) => {
+        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceRoom.WorkspaceId, taskId, (targetTask) => {
             targetTask.Deadline = newDeadline;
         });
         if (updatedTask == null)
@@ -133,18 +133,18 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Clients.UpdateTaskDeadline(taskId, updatedTask.Deadline);
+        await WorkspaceRoom.Clients.UpdateTaskDeadline(taskId, updatedTask.Deadline);
     }
 
     public async Task UpdateTaskOrder(int taskId, int destinationOrder)
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceConnection.WorkspaceId, taskId, (targetTask) => {
+        TodoTask? updatedTask = await _todoListService.UpdateTask(WorkspaceRoom.WorkspaceId, taskId, (targetTask) => {
             targetTask.Order = destinationOrder;
         });
         if (updatedTask == null)
@@ -153,7 +153,7 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        await WorkspaceConnection.Clients.UpdateTaskOrder(taskId, updatedTask.Order);
+        await WorkspaceRoom.Clients.UpdateTaskOrder(taskId, updatedTask.Order);
     }
 
     public async Task ConnectToWorkspace(int workspaceId)
@@ -165,26 +165,26 @@ public class TodoListHub : Hub<ITodoListClient>
             return;
         }
 
-        if (WorkspaceConnection.IsConnected)
+        if (WorkspaceRoom.IsConnected)
         {
-            await WorkspaceConnection.Clients.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
-            WorkspaceConnection.Disconnect();
-        } 
+            await WorkspaceRoom.Clients.UserDisconnected(WorkspaceRoom.ConnectedUsersCount - 1);
+            await WorkspaceRoom.DisconnectAsync();
+        }
 
-        WorkspaceConnection.Connect(workspaceId);
-        await WorkspaceConnection.Clients.UserConnected(WorkspaceConnection.ConnectedUsersCount);
+        await WorkspaceRoom.ConnectAsync(workspaceId);
+        await WorkspaceRoom.Clients.UserConnected(WorkspaceRoom.ConnectedUsersCount);
     }
 
     public async Task DisconnectFromWorkspace()
     {
-        if (!WorkspaceConnection.IsConnected)
+        if (!WorkspaceRoom.IsConnected)
         {
             await Clients.Caller.Error($"You are not connected to any workspace");
             return;
         }
 
-        await WorkspaceConnection.Clients.UserDisconnected(WorkspaceConnection.ConnectedUsersCount - 1);
-        WorkspaceConnection.Disconnect();
+        await WorkspaceRoom.Clients.UserDisconnected(WorkspaceRoom.ConnectedUsersCount - 1);
+        await WorkspaceRoom.DisconnectAsync();
     }
 
     public override async Task OnConnectedAsync()
@@ -203,20 +203,20 @@ public class TodoListHub : Hub<ITodoListClient>
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        if (WorkspaceConnection.IsConnected)
+        if (WorkspaceRoom.IsConnected)
             DisconnectFromWorkspace().Wait();
 
         return base.OnDisconnectedAsync(exception);
     }
 
-    protected IWorkspaceRoom WorkspaceConnection
+    protected IWorkspaceRoom WorkspaceRoom
     {
         get
         {
-            if (_workspaceConnection != null) return _workspaceConnection;
-            _workspaceConnection = _workspaceRoomManager.GetWorkspaceRoom(Context);
-            return _workspaceConnection;
+            if (_workspaceRoom != null) return _workspaceRoom;
+            _workspaceRoom = _workspaceRoomManager.GetWorkspaceRoom(Context);
+            return _workspaceRoom;
         }
     }
-    private IWorkspaceRoom? _workspaceConnection;
+    private IWorkspaceRoom? _workspaceRoom;
 }

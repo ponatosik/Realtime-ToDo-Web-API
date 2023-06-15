@@ -17,7 +17,7 @@ public class WorkspaceRoomManager
 
     public IWorkspaceRoom GetWorkspaceRoom(HubCallerContext context)
     {
-        return new WorkspaceRoom(context, _hubContext, this);
+        return new WorkspaceRoom(context.ConnectionId, _hubContext, this);
     }
 
     public int GetWorkspaceId(string connectionId)
@@ -32,18 +32,23 @@ public class WorkspaceRoomManager
     {
         return _connectionIdByWorkpaceId.ContainsKey(connectionId);
     }
-    public void Connect(string connectionId, int workspaceId)
+    public async Task ConnectAsync(string connectionId, int workspaceId)
     {
+        await _hubContext.Groups.AddToGroupAsync(connectionId, GenerateGroupName(workspaceId));
+        await _hubContext.Clients.Client(connectionId).Connected(workspaceId);
         _connectionIdByWorkpaceId.Add(connectionId, workspaceId);
     }
-    public void Disconnect(string connectionId)
+    public async Task DisconnectAsync(string connectionId)
     {
+        int workspaceId = GetWorkspaceId(connectionId);
+        await _hubContext.Groups.RemoveFromGroupAsync(connectionId, GenerateGroupName(workspaceId));
+        await _hubContext.Clients.Client(connectionId).Disconnected(workspaceId);
         _connectionIdByWorkpaceId.Remove(connectionId);
     }
-    public void CloseWorkspaceRoom(int workspaceId)
+    public async Task CloseWorkspaceRoomAsync(int workspaceId)
     {
         foreach (var connection in _connectionIdByWorkpaceId.Where(pair => pair.Value == workspaceId))
-            Disconnect(connection.Key);
+            await DisconnectAsync(connection.Key);
     }
 
     public ITodoListClient Clients(int workspaceId) 

@@ -9,6 +9,6 @@ public interface IWorkspaceRoom
     public int WorkspaceId { get; }
     public ITodoListClient Clients { get; }
 
-    public void Connect(int workspaceId);
-    public void Disconnect();
+    public Task ConnectAsync(int workspaceId);
+    public Task DisconnectAsync();
 }
