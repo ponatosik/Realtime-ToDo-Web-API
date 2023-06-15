@@ -24,12 +24,21 @@ public class WorkspacesController : ControllerBase
         _hubContext = hubContext;
     }
 
+    /// <summary>
+    /// Loads all workspaces
+    /// </summary>
+    /// <response code="200">Returns all workspaces</response>
     [HttpGet]
     public IEnumerable<WorkspaceInfo> Get()
     {
         return _todoListService.GetWorkspacesInfo();
     }
 
+    /// <summary>
+    /// Loads single workspace
+    /// </summary>
+    /// <response code="200">Returns the workspace</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpGet("{workspaceId}")]
     public ActionResult<WorkspaceInfo> Get(int workspaceId)
     {
@@ -38,6 +47,11 @@ public class WorkspacesController : ControllerBase
         return Ok(workspace!);
     }
 
+    /// <summary>
+    /// Creates a workspace
+    /// </summary>
+    /// <response code="201">Returns created workspace and path to it</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpPost]
     public async Task<ActionResult<WorkspaceInfo>> Post(string worskspaceName)
     {
@@ -51,8 +65,13 @@ public class WorkspacesController : ControllerBase
         return CreatedAtAction(nameof(Get), routeValues, createdWorkspace);
     }
 
-    [HttpPatch("{workspaceId}")]
-    public async Task<ActionResult<WorkspaceInfo>> Patch(int workspaceId, string newWorkspaceName)
+    /// <summary>
+    /// Updates a workspace
+    /// </summary>
+    /// <response code="200">Returns updated workspace</response>
+    /// <response code="404">If the workspace is not found</response>
+    [HttpPut("{workspaceId}")]
+    public async Task<ActionResult<WorkspaceInfo>> Put(int workspaceId, string newWorkspaceName)
     {
         WorkspaceInfo? updatedWorkspace = await _todoListService.UpdateWorkspaceInfo(workspaceId, workspace =>
         {
@@ -64,6 +83,11 @@ public class WorkspacesController : ControllerBase
         return Ok(updatedWorkspace);
     }
 
+    /// <summary>
+    /// Deletes a workspace
+    /// </summary>
+    /// <response code="200">Returns deleted workspace</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpDelete("{workspaceId}")]
     public async Task<ActionResult<WorkspaceInfo>> Delete(int workspaceId)
     {

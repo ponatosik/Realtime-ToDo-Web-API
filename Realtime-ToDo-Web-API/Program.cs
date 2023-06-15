@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Hubs;
 using Realtime_ToDo_Web_API.Services;
 using Realtime_ToDo_Web_API.Services.SignalR;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +15,18 @@ builder.Services.AddSignalR();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc(builder.Configuration["VersionString"], new OpenApiInfo
+    {
+        Version = builder.Configuration["VersionString"],
+        Title = "Realtime-ToDo-Web-API",
+        Description = "Realtime web API for creating collaborative todo list",
+    });
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+
 
 // Set up your connection string in appsettings.json or dotnet secrets
 // Or use in memory database if you have no external database
@@ -29,11 +43,12 @@ builder.Services.AddTransient<TodoListService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.SwaggerEndpoint($"/swagger/{builder.Configuration["VersionString"]}/swagger.json", builder.Configuration["VersionString"]);
+    options.RoutePrefix = string.Empty;
+});
 
 app.UseHttpsRedirection();
 

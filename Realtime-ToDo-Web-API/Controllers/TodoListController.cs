@@ -15,15 +15,18 @@ public class TodoListController : ControllerBase
     private readonly TodoListService _todoListService;
     private readonly WorkspaceRoomManager _workspacesRoom;
 
-
     public TodoListController(TodoListService todoListService,
-                              WorkspaceRoomManager workspacesRoomManager,
-                              IHubContext<TodoListHub, ITodoListClient> hubContext)
+                              WorkspaceRoomManager workspacesRoomManager)
     {
         _todoListService = todoListService;
         _workspacesRoom = workspacesRoomManager; 
     }
 
+    /// <summary>
+    /// Loads all task in a workspace
+    /// </summary>
+    /// <response code="200">Returns tasks in the workspace</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpGet("{workspaceId}")]
     public ActionResult<IEnumerable<TodoTask>> Get(int workspaceId)
     {
@@ -32,6 +35,11 @@ public class TodoListController : ControllerBase
         return Ok(tasks!);
     }
 
+    /// <summary>
+    /// Finds single task in a workspace
+    /// </summary>
+    /// <response code="200">Returns the task</response>
+    /// <response code="404">If the task is not found</response>
     [HttpGet("{workspaceId}/{taskId}")]
     public ActionResult<TodoTask> Get(int workspaceId, int taskId)
     {
@@ -40,8 +48,13 @@ public class TodoListController : ControllerBase
         return Ok(task!);
     }
 
-    [HttpPost("{workspaceId}")]
-    public async Task<ActionResult<TodoTask>> Post(TodoTask task, int workspaceId)
+    /// <summary>
+    /// Creates new task in a workspace
+    /// </summary>
+    /// <response code="201">Returns created task and path to it</response>
+    /// <response code="404">If the workspace is not found</response>
+    [HttpPut("{workspaceId}")]
+    public async Task<ActionResult<TodoTask>> Put(TodoTask task, int workspaceId)
     {
         TodoTask? createdTask = await _todoListService.AddTask(workspaceId, task);
         if (createdTask == null) return NotFound($"Workspace with id {workspaceId} not found");
@@ -55,6 +68,11 @@ public class TodoListController : ControllerBase
         return CreatedAtAction(nameof(Get), routeValues, createdTask);
     }
 
+    /// <summary>
+    /// Deletes a task in a workspace
+    /// </summary>
+    /// <response code="200">Returns deleted task</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpDelete("{workspaceId}/{taskId}")]
     public async Task<ActionResult<TodoTask>> Delete(int workspaceId, int taskId)
     {
@@ -65,6 +83,11 @@ public class TodoListController : ControllerBase
         return Ok(deletedTask);
     }
 
+    /// <summary>
+    /// Updates a TodoTask in a workspace
+    /// </summary>
+    /// <response code="200">Returns updated task</response>
+    /// <response code="404">If the workspace is not found</response>
     [HttpPatch("{workspaceId}")]
     public async Task<ActionResult<TodoTask>> Patch(TodoTask newTask, int workspaceId)
     {
