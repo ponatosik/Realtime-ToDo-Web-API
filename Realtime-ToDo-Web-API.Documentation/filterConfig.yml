@@ -1,0 +1,18 @@
+apiRules:
+  - include:
+      uidRegex: ^Realtime_ToDo_Web_API\.Controllers
+  - include:
+      uidRegex: ^Realtime_ToDo_Web_API\.Hubs
+  - include:
+      uidRegex: ^Realtime_ToDo_Web_API\.Models
+  - exclude:
+      uidRegex: ^Realtime_ToDo_Web_API\.
+  - exclude:
+      uidRegex: ^System\.Object
+      type: Type
+  - exclude:
+      uidRegex: ^Microsoft\.
+      type: Type
+
+
+      
