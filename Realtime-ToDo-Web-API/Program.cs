@@ -21,7 +21,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Version = builder.Configuration["VersionString"],
         Title = "Realtime-ToDo-Web-API",
-        Description = "Realtime web API for creating collaborative todo list",
+        Description = "A part of realtime web API documentation for creating collaborative todo list",
     });
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));

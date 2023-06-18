@@ -16,6 +16,9 @@ on:
 jobs:
   publish-docs:
     runs-on: ubuntu-latest
+    environment:
+      name: 'Documentation'
+      url: https://ponatosik.github.io/Realtime-ToDo-Web-API/
     steps:
     - name: Chekout
       uses: actions/checkout@v3
