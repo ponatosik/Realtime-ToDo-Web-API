@@ -12,13 +12,17 @@ on:
   push:
     branches:
     - main
-
+    
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+  
 jobs:
   publish-docs:
     runs-on: ubuntu-latest
     environment:
-      name: 'Documentation'
-      url: https://ponatosik.github.io/Realtime-ToDo-Web-API/
+      name: Documentation
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - name: Chekout
       uses: actions/checkout@v3
@@ -30,8 +34,12 @@ jobs:
     - run: dotnet tool update -g docfx
     - run: docfx Realtime-ToDo-Web-API.Documentation/docfx.json
 
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/_site
+        path: 'Realtime-ToDo-Web-API.Documentation/_site'
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
