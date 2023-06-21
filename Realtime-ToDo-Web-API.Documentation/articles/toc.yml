@@ -1,2 +1,4 @@
-- name: Introduction
-  href: intro.md
+- name: How to use this API
+  href: how-to-use.md
+- name: How to run this API
+  href: how-to-run.md
