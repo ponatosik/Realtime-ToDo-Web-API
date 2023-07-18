@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Realtime_ToDo_Web_API.Data;
 using Realtime_ToDo_Web_API.Hubs;
@@ -28,11 +27,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
+var mySqlVersion = new MySqlServerVersion(new Version(5, 7, 9));
+
 // Set up your connection string in appsettings.json or dotnet secrets
 // Or use in memory database if you have no external database
 builder.Services.AddDbContext<TodoListContext>(options =>
     //options.UseInMemoryDatabase("TodoListInMemoryDatabase")
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TodoListDB"))
+	options.UseMySql(builder.Configuration.GetConnectionString("TodoListDB"), mySqlVersion)
 );
 
 // Add custom services and singletons for dependency injection
