@@ -32,8 +32,9 @@ var mySqlVersion = new MySqlServerVersion(new Version(5, 7, 9));
 // Set up your connection string in appsettings.json or dotnet secrets
 // Or use in memory database if you have no external database
 builder.Services.AddDbContext<TodoListContext>(options =>
-    //options.UseInMemoryDatabase("TodoListInMemoryDatabase")
-	options.UseMySql(builder.Configuration.GetConnectionString("TodoListDB"), mySqlVersion)
+    options.UseInMemoryDatabase("TodoListInMemoryDatabase")
+
+    //options.UseMySql(builder.Configuration.GetConnectionString("TodoListDB"), mySqlVersion)
 );
 
 // Add custom services and singletons for dependency injection

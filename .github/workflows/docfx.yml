@@ -32,14 +32,14 @@ jobs:
         dotnet-version: 7.x
 
     - run: dotnet tool update -g docfx
-    - run: docfx Realtime-ToDo-Web-API.Documentation/docfx.json
+    - run: docfx Realtime-ToDo-Web-API/docs/docfx.json
 
     - name: Setup Pages
       uses: actions/configure-pages@v3
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
       with:
-        path: 'Realtime-ToDo-Web-API.Documentation/_site'
+        path: 'Realtime-ToDo-Web-API/docs/_site'
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v2

@@ -3,7 +3,7 @@
     {
       "src": [
         {
-          "src": "../Realtime-ToDo-Web-API",
+          "src": "../src/Realtime-ToDo-Web-API",
           "files": [ "**.csproj" ]
         }
       ],

@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Realtime-ToDo-Web-API\Realtime-ToDo-Web-API.csproj" />
+    <ProjectReference Include="..\src\Realtime-ToDo-Web-API.csproj" />
   </ItemGroup>
 
 </Project>
