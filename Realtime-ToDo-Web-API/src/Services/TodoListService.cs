@@ -39,7 +39,6 @@ public class TodoListService
         await _todoListContext.SaveChangesAsync();
         return targetWorkspaceInfo;
     }
-
     public async Task<WorkspaceInfo?> DeleteWorkspace(int workspaceId)
     {
         Workspace? targetWorkspace = GetWorkspace(workspaceId);
@@ -49,14 +48,12 @@ public class TodoListService
         await _todoListContext.SaveChangesAsync();
         return new WorkspaceInfo(targetWorkspace);
     }
-
     public IEnumerable<WorkspaceInfo> GetWorkspacesInfo()
     {
         return _todoListContext.Workspaces
             .Include(workspace => workspace.Tasks)
             .Select(workspace => new WorkspaceInfo(workspace, workspace.Tasks.Count()));
     }
-
     public WorkspaceInfo? GetWorkspaceInfo(int workspaceId) 
     {
         Workspace? targetWorkspace = GetWorkspace(workspaceId);
@@ -66,7 +63,6 @@ public class TodoListService
 
         return new WorkspaceInfo(targetWorkspace);
     }
-
     public Workspace? GetWorkspace(int workspaceId)
     {
         return  _todoListContext.Workspaces
@@ -93,7 +89,6 @@ public class TodoListService
                 ?.Tasks
                 ?.Count;
     }
-
     public TodoTask? GetTask(int workspaceId, int taskId)
     {
         return  _todoListContext.Workspaces
@@ -102,7 +97,6 @@ public class TodoListService
                 ?.Tasks
                 ?.FirstOrDefault(task => task.Id == taskId);
     }
-
     public async Task<TodoTask?> AddTask(int workspaceId, TodoTask task) 
     {
         Workspace? workspace = GetWorkspaceWithTasks(workspaceId);
@@ -116,7 +110,6 @@ public class TodoListService
         await _todoListContext.SaveChangesAsync();
         return task;
     }
-
     public async Task<TodoTask?> UpdateTask(int workspaceId, int taskId, Action<TodoTask> modifierDelegate) 
     {
         TodoTask? targetTask = GetTask(workspaceId, taskId);
@@ -147,7 +140,6 @@ public class TodoListService
         await _todoListContext.SaveChangesAsync();
         return targetTask;
     }
-
     public async Task<TodoTask?> DeleteTask(int workspaceId, int taskId) 
     {
         var workspaceTasks = GetWorkspaceTasks(workspaceId);

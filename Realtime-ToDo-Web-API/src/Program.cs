@@ -1,56 +1,20 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using Realtime_ToDo_Web_API.Data;
-using Realtime_ToDo_Web_API.Hubs;
-using Realtime_ToDo_Web_API.Services;
-using Realtime_ToDo_Web_API.Services.SignalR;
-using System.Reflection;
+using Realtime_ToDo_Web_API.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc(builder.Configuration["VersionString"], new OpenApiInfo
-    {
-        Version = builder.Configuration["VersionString"],
-        Title = "Realtime-ToDo-Web-API",
-        Description = "A part of realtime web API documentation for creating collaborative todo list",
-    });
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-});
+string ApiVersion = builder.Configuration["VersionString"]!;
+builder.Services.RegisterSwagger(ApiVersion);
 
+builder.ConfigureDatabase();
 
-var mySqlVersion = new MySqlServerVersion(new Version(5, 7, 9));
-
-// Set up your connection string in appsettings.json or dotnet secrets
-// Or use in memory database if you have no external database
-builder.Services.AddDbContext<TodoListContext>(options =>
-    options.UseInMemoryDatabase("TodoListInMemoryDatabase")
-
-    //options.UseMySql(builder.Configuration.GetConnectionString("TodoListDB"), mySqlVersion)
-);
-
-// Add custom services and singletons for dependency injection
-builder.Services.AddSingleton<WorkspaceRoomManager>();
-builder.Services.AddTransient<TodoListService>();
-
+builder.Services.RegisterServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint($"/swagger/{builder.Configuration["VersionString"]}/swagger.json", builder.Configuration["VersionString"]);
-    options.RoutePrefix = string.Empty;
-});
+app.ConfigureSwagger(ApiVersion);
 
 app.UseHttpsRedirection();
 
@@ -58,14 +22,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseCors(policy => policy
-          .AllowAnyMethod()
-          .AllowAnyHeader()
-          .SetIsOriginAllowed(origin => true)
-          .AllowCredentials());
+app.ConfigureCors();
 
-app.MapHub<TodoListHub>("/Board");
-app.MapHub<WorkspacesHub>("/WorkspacesHub");
+app.RegisterHubs();
 
 
 app.Run();
