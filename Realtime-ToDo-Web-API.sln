@@ -5,7 +5,12 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Realtime-ToDo-Web-API", "Realtime-ToDo-Web-API\src\Realtime-ToDo-Web-API.csproj", "{0674CFDF-6C23-4235-9A35-9D0F956CE215}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realtime-ToDo-Web-API.Tests", "Realtime-ToDo-Web-API\tests\Realtime-ToDo-Web-API.Tests.csproj", "{B9014AC7-B637-48A2-B0DB-0AF239E35559}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Realtime-ToDo-Web-API.Tests", "Realtime-ToDo-Web-API\tests\Realtime-ToDo-Web-API.Tests.csproj", "{B9014AC7-B637-48A2-B0DB-0AF239E35559}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{20288CA5-CF4F-4C03-8B67-78ECD681F265}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

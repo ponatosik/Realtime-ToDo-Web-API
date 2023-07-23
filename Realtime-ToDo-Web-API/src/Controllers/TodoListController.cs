@@ -1,7 +1,4 @@
-using System.Collections;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using Realtime_ToDo_Web_API.Hubs;
 using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
 using Realtime_ToDo_Web_API.Services.SignalR;

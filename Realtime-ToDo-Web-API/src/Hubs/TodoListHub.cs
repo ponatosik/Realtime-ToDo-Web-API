@@ -3,7 +3,6 @@ using Realtime_ToDo_Web_API.Models;
 using Realtime_ToDo_Web_API.Services;
 using Realtime_ToDo_Web_API.Services.SignalR;
 
-
 namespace Realtime_ToDo_Web_API.Hubs;
 
 /// <summary>

@@ -52,7 +52,7 @@ public class TodoListService
     {
         return _todoListContext.Workspaces
             .Include(workspace => workspace.Tasks)
-            .Select(workspace => new WorkspaceInfo(workspace, workspace.Tasks.Count()));
+            .Select(workspace => new WorkspaceInfo(workspace, workspace.Tasks!.Count));
     }
     public WorkspaceInfo? GetWorkspaceInfo(int workspaceId) 
     {
@@ -95,7 +95,7 @@ public class TodoListService
                 .Include(workspace => workspace.Tasks)
                 ?.FirstOrDefault(workspace => workspace.Id == workspaceId)
                 ?.Tasks
-                ?.FirstOrDefault(task => task.Id == taskId);
+                ?.Find(task => task.Id == taskId);
     }
     public async Task<TodoTask?> AddTask(int workspaceId, TodoTask task) 
     {
