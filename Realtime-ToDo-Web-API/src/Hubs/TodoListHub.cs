@@ -148,7 +148,7 @@ public class TodoListHub : Hub<ITodoListClient>
     /// </summary>
     /// <param name="taskId">The ID of the task to update.</param>
     /// <param name="newDeadline">The new deadline of the task.</param>
-    public async Task UpdateTaskDeadline(int taskId, DateTime newDeadline)
+    public async Task UpdateTaskDeadline(int taskId, DateTime? newDeadline)
     {
         if (!WorkspaceRoom.IsConnected)
         {
