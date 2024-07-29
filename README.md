@@ -1,12 +1,13 @@
 # API for collaborative todo lists
 
- This repository contains the backend code for a real-time ToDo web application. It is built using ASP.NET Core and utilizes SignalR for real-time collaborative functionality.
+ This repository contains the backend code for a real-time Todo web application. It is built using ASP.NET Core and utilizes SignalR for real-time collaborative functionality.
 
 ## Project links
 
-* [Hosted API](https://realtimetodowebapi.azurewebsites.net/) (this repo)
-* [Documentation](https://ponatosik.github.io/Realtime-ToDo-Web-API/) (this repo)
-* [Frontend example](https://todo-list-masmits.vercel.app/) ([another repo](https://github.com/MasMits/TodoList))
+* [Hosted API](https://realtimetodowebapi.azurewebsites.net/)
+* [Documentation](https://ponatosik.github.io/Realtime-ToDo-Web-API/)
+* [Angular frontend example](https://ponatosik.github.io/Realtime-Todolist-Web-App-Angular/) ([another repo](https://github.com/ponatosik/Realtime-Todolist-Web-App-Angular))
+* [React frontend example](https://todo-list-masmits.vercel.app/) ([another repo](https://github.com/MasMits/TodoList))
 
 ## Requirements
 
